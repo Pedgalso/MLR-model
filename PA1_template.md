@@ -15,11 +15,12 @@ Once data is loaded, the preprocessing consist in:
 Dataraw<- read.csv("./activity.csv",sep=",",header=TRUE)
 Data<-Dataraw[!is.na(Dataraw$steps),]
 TotalStepsPerDay<-aggregate(Data$steps,by=list(Date=Data$date),sum)
+options(scipen=999)
 ```
 
 ## What is mean total number of steps taken per day?
 
-The mean is: 1.0766189 &times; 10<sup>4</sup> steps taken per day
+The mean is: 10766 steps taken per day
 
 The median is: 10765 of steps 
 
@@ -89,7 +90,7 @@ hist(StepsPerDayComplete$x)
 
 ![plot of chunk unnamed-chunk-6](figure/unnamed-chunk-6-1.png) 
 
-The mean is: 3.328677 &times; 10<sup>4</sup> steps taken per day
+The mean is: 33286 steps taken per day
 
 The median is: 28932 of steps 
 
