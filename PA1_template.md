@@ -20,7 +20,7 @@ options(scipen=999)
 
 ## What is mean total number of steps taken per day?
 
-The mean is: 10766 steps taken per day
+The mean is: 10766.1886792 steps taken per day
 
 The median is: 10765 of steps 
 
@@ -28,7 +28,7 @@ And the histogram is:
 
 
 ```r
-hist(TotalStepsPerDay$x)
+hist(TotalStepsPerDay$x,main="histogram of steps per day",xlab="Steps per Day")
 ```
 
 ![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2-1.png) 
@@ -85,12 +85,12 @@ The histogram with the data completed is:
 
 ```r
 StepsPerDayComplete<-aggregate(CompleteData$steps,by=list(Date=CompleteData$date),sum)
-hist(StepsPerDayComplete$x)
+hist(StepsPerDayComplete$x,breaks =20, main="Histogram of steps per day",xlab="Steps per day")
 ```
 
 ![plot of chunk unnamed-chunk-6](figure/unnamed-chunk-6-1.png) 
 
-The mean is: 33286 steps taken per day
+The mean is: 33286.7704918 steps taken per day
 
 The median is: 28932 of steps 
 

@@ -14,7 +14,7 @@ Once data is loaded, the preprocessing consist in:
 Dataraw<- read.csv("./activity.csv",sep=",",header=TRUE)
 Data<-Dataraw[!is.na(Dataraw$steps),]
 TotalStepsPerDay<-aggregate(Data$steps,by=list(Date=Data$date),sum)
-
+options(scipen=999)
 
 ```
 
@@ -27,7 +27,7 @@ The median is: `r median(TotalStepsPerDay$x) ` of steps
 And the histogram is:
 
 ```{r}
-hist(TotalStepsPerDay$x)
+hist(TotalStepsPerDay$x,main="histogram of steps per day",xlab="Steps per Day")
 ```
 
 ## What is the average daily activity pattern?
@@ -72,7 +72,7 @@ CompleteData$date<-as.Date(CompleteData$date)
 The histogram with the data completed is:
 ```{r}
 StepsPerDayComplete<-aggregate(CompleteData$steps,by=list(Date=CompleteData$date),sum)
-hist(StepsPerDayComplete$x)
+hist(StepsPerDayComplete$x,breaks =20, main="Histogram of steps per day",xlab="Steps per day")
 
 ```
 
