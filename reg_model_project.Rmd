@@ -1,0 +1,265 @@
+---
+title: "Modeling and prediction for movies"
+subtitle: "Linear Regression and Modeling - Statistics with R - Duke University"
+date: "April '17"
+author: "Pedro M. Gallardo"
+output: 
+  html_document: 
+    fig_height: 4
+    highlight: pygments
+    theme: spacelab
+---
+
+## Setup
+
+### Load packages
+
+```{r load-packages, message = FALSE}
+library(ggplot2)
+library(dplyr)
+library(statsr)
+library(gridExtra)
+library(knitr)
+```
+
+### Load data
+
+```{r load-data}
+load("movies.Rdata")
+
+```
+
+* * *
+
+## Part 1: Data
+
+The data set is comprised of 651 randomly sampled movies produced and released before 2016.
+
+One of the main problems that might have the linear model is collinearity.
+
+* * *
+
+## Part 2: Research question
+
+The research question that is going to be addressed is: 
+**What attributes make a movie popular?**. 
+
+* * *
+
+## Part 3: Exploratory data analysis
+
+First of all, this analysis is going to define what is understood as "popular". 
+
+It is of the researcher understanding that the rating of a movie along with the number of people who has watched it makes it "popular". Therefore, a new variable that combines these two variables from IMDB, **imbd_rating** and **imbd_num_votes** is going to be created so as to be the response variable of this study.
+
+```{r}
+
+ggplot(data=movies, aes(x=imdb_num_votes ,y=imdb_rating, colour=critics_rating ))+geom_point()
+
+movies$success<-movies$imdb_rating*log(movies$imdb_num_votes)
+```
+
+The new variable is called **success**, it is a numerical variable and it is computed as: 
+**success** = **imbd_rating** X log(**imbd_num_votes**)
+
+It has been used the logarithm of the **imbd_num_votes** in order to account for the order of the number of voters rather than the number as itself so as to have a response variable within a smaller range.
+
+Next, the response varible is going to be plotted against some of the variables that are going to be used as explanatory variables.
+
+```{r}
+par(mfrow=c(2,2))
+a<-ggplot(data=movies, aes(x=critics_score ,y=success, colour=critics_rating))+geom_point()
+b<- ggplot(data=movies, aes(x=runtime ,y=success, colour=mpaa_rating ))+geom_point()
+c<- ggplot(data=movies, aes(x=best_pic_nom ,y=success))+geom_boxplot()
+d<- ggplot(data=movies, aes(x=best_pic_win ,y=success))+geom_boxplot()
+ 
+ grid.arrange(a,b,c,d)
+ 
+ a<-movies%>%
+  group_by(genre) %>%
+  summarise(medianSuccess=median(success), medianNumber=median(imdb_num_votes), medianRating=median(imdb_rating), IQR=IQR(success), count=n()) %>%
+arrange(desc(medianSuccess))
+ 
+ a
+ 
+b<-movies%>%
+group_by(genre)
+ 
+ggplot(b, aes(y=success, x=genre))+geom_boxplot()
+ 
+```
+
+From previous graphs, it may be observed that: 
+
+- the values for **success** variable ranges among 0 - 125, it does not have a unit, it is just and index. The higher it is, the most popular the film is. 
+- **critics_score**, **best_pic_nom**, **best_pic_win** seem to have a clear correlation with the "popularity" of the film.
+- From the film **genre** exploration, it is observed how works the **success** variable, despides the documentaries rates are high, they are barely seen by the people, on the contrary, the animation films, are seen by a higher number of people but do not score that high. The balance between film score and amount of viewers leans the balance towards viewers. So in this exploratory analysis is concluded that the animation films are the most popular films.
+
+* * *
+
+## Part 4: Modeling
+
+The method to build the model is going to be the backwards elimination and the selection criterion is going to be the adjusted R².
+
+In the model, the response variable is the **success** variable and the explanatory variables are all the following variables: 
+
+1. critics_score
+2. best_pic_nom
+3. best_pic_win
+4. best_actor_win
+5. best_actress_win
+6. best_dir_win
+7. genre
+8. mpaa_rating
+9. runtime
+10. top200_box
+
+
+Variables such as **critics_rating**, **audicence_rating**, **audience_score** have been eliminated from the model to avoid collinearity and **director** and **actor1** have been eliminated as when adding them the conditions for the MLR model are not met. 
+
+###Step 1:
+```{r}
+
+model0<- lm(success ~ critics_score + best_pic_nom + best_pic_win + best_actor_win + best_actress_win +  best_dir_win + genre + mpaa_rating + runtime + top200_box, data=movies)
+
+model1<-lm(success ~ best_pic_nom + best_pic_win + best_actor_win + best_actress_win +  best_dir_win + genre + mpaa_rating + runtime + top200_box, data=movies)
+
+model2<- lm(success ~ critics_score + best_pic_win + best_actor_win + best_actress_win +  best_dir_win + genre + mpaa_rating + runtime + top200_box, data=movies)
+
+model3<- lm(success ~ critics_score + best_pic_nom + best_actor_win + best_actress_win +  best_dir_win + genre + mpaa_rating + runtime + top200_box, data=movies)
+
+model4<- lm(success ~ critics_score + best_pic_nom + best_pic_win + best_actress_win +  best_dir_win + genre + mpaa_rating + runtime + top200_box, data=movies)
+
+model5<- lm(success ~ critics_score + best_pic_nom + best_pic_win + best_actor_win + best_dir_win + genre + mpaa_rating + runtime + top200_box, data=movies)
+
+model6<- lm(success ~ critics_score + best_pic_nom + best_pic_win + best_actor_win + best_actress_win +  genre + mpaa_rating + runtime + top200_box, data=movies)
+
+model7<- lm(success ~ critics_score + best_pic_nom + best_pic_win + best_actor_win + best_actress_win +  best_dir_win + mpaa_rating + runtime + top200_box, data=movies)
+
+model8<- lm(success ~ critics_score + best_pic_nom + best_pic_win + best_actor_win + best_actress_win +  best_dir_win + genre + runtime + top200_box, data=movies)
+
+model9<- lm(success ~ critics_score + best_pic_nom + best_pic_win + best_actor_win + best_actress_win +  best_dir_win + genre + top200_box, data=movies)
+
+model10<- lm(success ~ critics_score + best_pic_nom + best_pic_win + best_actor_win + best_actress_win +  best_dir_win + genre + runtime, data=movies)
+
+kable(data.frame(variable_eliminated=c("None", "critics_score"," best_pic_nom", "best_pic_win", "best_actor_win", "best_actress_win", "best_dir_win", "genre", "mpaa_rating",  "runtime", "top200_box"), Rs=c(summary(model0)$adj.r.squared, summary(model1)$adj.r.squared, summary(model2)$adj.r.squared, summary(model3)$adj.r.squared, summary(model4)$adj.r.squared, summary(model5)$adj.r.squared, summary(model6)$adj.r.squared, summary(model7)$adj.r.squared, summary(model8)$adj.r.squared, summary(model9)$adj.r.squared, summary(model10)$adj.r.squared) ))
+
+```
+
+From this first step, the variable **best_actress_win** and **best_actor_win** are eliminated.
+
+### Step 2
+
+```{r}
+model0<- lm(success ~ critics_score + best_pic_nom + best_pic_win + best_dir_win + genre + mpaa_rating + runtime + top200_box, data=movies)
+
+model1<-lm(success ~ best_pic_nom + best_pic_win + best_dir_win + genre + mpaa_rating + runtime + top200_box, data=movies)
+
+model2<- lm(success ~ critics_score + best_pic_win + best_dir_win + genre + mpaa_rating + runtime + top200_box, data=movies)
+
+model3<- lm(success ~ critics_score + best_pic_nom +  best_dir_win + genre + mpaa_rating + runtime + top200_box, data=movies)
+
+model4<- lm(success ~ critics_score + best_pic_nom + best_pic_win +  genre + mpaa_rating + runtime + top200_box, data=movies)
+
+model5<- lm(success ~ critics_score + best_pic_nom + best_pic_win + best_dir_win + mpaa_rating + runtime + top200_box, data=movies)
+
+model6<- lm(success ~ critics_score + best_pic_nom + best_pic_win + best_dir_win + genre + runtime + top200_box, data=movies)
+
+model7<- lm(success ~ critics_score + best_pic_nom + best_pic_win + best_dir_win + genre + top200_box, data=movies)
+
+model8<- lm(success ~ critics_score + best_pic_nom + best_pic_win + best_dir_win + genre + runtime, data=movies)
+
+kable(data.frame(variable_eliminated=c("None", "critics_score"," best_pic_nom", "best_pic_win", "best_dir_win", "genre", "mpaa_rating",  "runtime", "top200_box"), Rs=c(summary(model0)$adj.r.squared, summary(model1)$adj.r.squared, summary(model2)$adj.r.squared, summary(model3)$adj.r.squared, summary(model4)$adj.r.squared, summary(model5)$adj.r.squared, summary(model6)$adj.r.squared, summary(model7)$adj.r.squared, summary(model8)$adj.r.squared)))
+```
+```
+
+This step is the last one. The parsimony model has been reached. When any other variable is removed from the model the adjusted-R² diminishes. 
+
+So, the final model is:
+```{r}
+summary(model0)
+```
+
+A quick check for the multiple linear regression condition is going to be conducted to ensure the validity of the model:
+
+### MLR conditions:
+
+**Linear relationships between x and y**
+```{r}
+
+par(mfrow=c(1,2))
+plot(model0$residuals ~ movies$critics_score[1:650])
+plot(model0$residuals ~ movies$runtime[1:650])
+
+```
+
+It is only check for the numerical variables. The condition is met. As the variables show a linearity with the response variable.
+
+
+**Nearly normal residuals**
+
+```{r}
+
+par(mfrow=c(1,2))
+hist(model0$residuals)
+qqnorm(model0$residuals)
+qqline(model0$residuals)
+```
+
+The condition is also met. 
+
+**Constant variability of residuals**
+
+```{r}
+
+par(mfrow=c(1,2))
+plot(model0$residuals ~ model0$fitted.values)
+plot(abs(model0$residuals) ~ model0$fitted.values)
+
+```
+
+Not fan shape is observed hence the condition is met.
+
+**Independece of residuals**
+
+The data have been randomly sampled as it was stated at the beginning of the report. Therefore the condition is also met.
+
+* * *
+
+## Part 5: Prediction
+
+The film chosen to be predicted is Rogue one by Gareth Edwards, prologue of the famous stars wars saga. These are variables introduced in the model, all of them have been taken from imdb website:
+
+Film: Rogue one: A Star Wars Story.
+Critics_score: 65 (from imdb)
+best_pic_nom= no, 
+best_pic_win= no,
+best_dir_win= no, 
+genre="Action & Adventure",
+mpaa_rating="PG-13",
+runtime= 133 minutes,
+top200_box= no
+
+```{r}
+new=data.frame(critics_score=65, best_pic_nom="no", best_pic_win="no",best_dir_win="no", genre="Action & Adventure",mpaa_rating="PG-13",runtime=c(133),top200_box="no")
+
+predict(model0, newdata=new, interval="prediction")
+
+# 
+real_value<-log(282751)*8
+real_value
+```
+
+**Conclusion on the prediction**
+
+The real value is within the predicted range, although it is close to the upper limit. This might be due to the popularity of the saga (Star Wars) that is raising the popularity of the film and it is an aspect that is not covered by the model herein built. 
+ 
+* * *
+
+## Part 6: Conclusion
+
+The key to the success of a film lays in the difussion it may get. The oscar nomination is a signigicant booster of its popularity.
+
+According to the Multiple Linear Regression model if a movie is nominated for the oscars or/and wins it, the popularity of the movie is going to raise significantly (10,17 and 6,69 respectively).
+
+The popularity variable herein study is not driven by the fame of the actors/actresses that perfom in the film and the genre of the film only is significantly relevant (i.e: p-value <0.05) for the genres of documentary, comedy, drama and musical. It is interesting to note that despide the documentaries usually score high they are not very popular, most probably because they are films for niches.
