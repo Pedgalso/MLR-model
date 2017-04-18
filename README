@@ -1,0 +1,11 @@
+README
+
+This project is the final project for the third course of the 
+Coursera specialitation; Statistics with  R by Duke University.
+
+The objective of the project is to set up a multiple linear regression
+model to solve the following research question:
+What attributes make a movie popular?
+
+The model is going to be built from a data set comprised of 651 randomly sampled movies produced 
+and released before 2016. 
